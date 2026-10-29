@@ -27,22 +27,30 @@ public final class ClientEvents {
         if (mc.player == null || mc.level == null) return;
 
         while (KeyBindings.TOGGLE_TOOL.consumeClick()) DisplayTool.toggle();
+
+        // The toggle key is the master switch: with the tool off, every other key does nothing.
+        // Presses are still consumed so they don't pile up and fire when the tool is turned on.
+        boolean active = DisplayTool.isActive();
         while (KeyBindings.PALETTE.consumeClick()) {
-            if (DisplayTool.serverSupported()) mc.setScreen(new PaletteScreen());
+            if (active) mc.setScreen(new PaletteScreen());
         }
-        while (KeyBindings.INSPECTOR.consumeClick()) DisplayTool.openInspector();
+        while (KeyBindings.INSPECTOR.consumeClick()) {
+            if (active) DisplayTool.openInspector();
+        }
         while (KeyBindings.CYCLE_MODE.consumeClick()) {
-            if (DisplayTool.isActive()) DisplayTool.cycleMode();
+            if (active) DisplayTool.cycleMode();
         }
         while (KeyBindings.DELETE.consumeClick()) {
             Display selected = DisplayTool.selected();
-            if (DisplayTool.isActive() && selected != null) DisplayTool.delete(selected);
+            if (active && selected != null) DisplayTool.delete(selected);
         }
         while (KeyBindings.DUPLICATE.consumeClick()) {
             Display selected = DisplayTool.selected();
-            if (DisplayTool.isActive() && selected != null) DisplayTool.duplicate(selected);
+            if (active && selected != null) DisplayTool.duplicate(selected);
         }
-        while (KeyBindings.UNDO.consumeClick()) DisplayTool.undo();
+        while (KeyBindings.UNDO.consumeClick()) {
+            if (active) DisplayTool.undo();
+        }
 
         DisplayTool.tick(mc);
     }

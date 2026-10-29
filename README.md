@@ -16,7 +16,7 @@ Download the jar from [Releases](../../releases) and put it in your `mods` folde
 
 | Key | Action |
 |---|---|
-| `Y` | Toggle the display tool |
+| `Y` | Turn the tool on/off (all other keys only work while it's on) |
 | `U` | Spawn palette (blocks, items, text) |
 | `I` | Inspector for the selected display |
 | `R` | Switch gizmo: move / rotate / scale |
