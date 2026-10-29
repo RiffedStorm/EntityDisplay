@@ -12,5 +12,6 @@
   "entitydisplay.tool.on": "Display Tool enabled",
   "entitydisplay.tool.off": "Display Tool disabled",
   "entitydisplay.undo.empty": "Nothing to undo",
-  "entitydisplay.inspector.none": "Look at a display (or select one) first"
+  "entitydisplay.inspector.none": "Look at a display (or select one) first",
+  "entitydisplay.unsupported": "This server doesn't have Entity Display installed"
 }

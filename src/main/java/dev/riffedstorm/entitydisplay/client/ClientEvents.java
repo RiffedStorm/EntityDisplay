@@ -27,7 +27,9 @@ public final class ClientEvents {
         if (mc.player == null || mc.level == null) return;
 
         while (KeyBindings.TOGGLE_TOOL.consumeClick()) DisplayTool.toggle();
-        while (KeyBindings.PALETTE.consumeClick()) mc.setScreen(new PaletteScreen());
+        while (KeyBindings.PALETTE.consumeClick()) {
+            if (DisplayTool.serverSupported()) mc.setScreen(new PaletteScreen());
+        }
         while (KeyBindings.INSPECTOR.consumeClick()) DisplayTool.openInspector();
         while (KeyBindings.CYCLE_MODE.consumeClick()) {
             if (DisplayTool.isActive()) DisplayTool.cycleMode();

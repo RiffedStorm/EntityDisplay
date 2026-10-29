@@ -6,10 +6,12 @@ import dev.riffedstorm.entitydisplay.network.SpawnDisplayPayload;
 import dev.riffedstorm.entitydisplay.network.UpdateDisplayPayload;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
@@ -60,7 +62,16 @@ public final class DisplayTool {
         return active;
     }
 
+    /** False on servers that don't have this mod: there is nothing to send edits to. */
+    public static boolean serverSupported() {
+        ClientPacketListener connection = Minecraft.getInstance().getConnection();
+        if (connection != null && connection.hasChannel(SpawnDisplayPayload.TYPE)) return true;
+        message(Component.translatable("entitydisplay.unsupported"));
+        return false;
+    }
+
     public static void toggle() {
+        if (!active && !serverSupported()) return;
         active = !active;
         if (!active) drag = null;
         message(Component.translatable(active ? "entitydisplay.tool.on" : "entitydisplay.tool.off"));
@@ -200,7 +211,7 @@ public final class DisplayTool {
     // ---- actions -------------------------------------------------------------------------------
 
     public static void spawn(EntityType<?> type, Vec3 pos, float yRot, float xRot, CompoundTag data) {
-        PacketDistributor.sendToServer(new SpawnDisplayPayload(BuiltInRegistries.ENTITY_TYPE.getKey(type), pos, yRot, xRot, data));
+        send(new SpawnDisplayPayload(BuiltInRegistries.ENTITY_TYPE.getKey(type), pos, yRot, xRot, data));
     }
 
     /** Applies an edit from the inspector (undoable). */
@@ -219,7 +230,7 @@ public final class DisplayTool {
     public static void delete(Display display) {
         pushUndo(new UndoEntry(UndoKind.RESPAWN, -1, BuiltInRegistries.ENTITY_TYPE.getKey(display.getType()),
                 display.position(), display.getYRot(), display.getXRot(), DisplayData.read(display)));
-        PacketDistributor.sendToServer(new DeleteDisplayPayload(display.getId()));
+        send(new DeleteDisplayPayload(display.getId()));
         if (display.getId() == selectedId) select(null);
     }
 
@@ -239,16 +250,17 @@ public final class DisplayTool {
             }
             case RESPAWN -> {
                 skipSpawnUndo++;
-                PacketDistributor.sendToServer(new SpawnDisplayPayload(entry.type(), entry.pos(), entry.yRot(), entry.xRot(), entry.data()));
+                send(new SpawnDisplayPayload(entry.type(), entry.pos(), entry.yRot(), entry.xRot(), entry.data()));
             }
             case DELETE -> {
-                PacketDistributor.sendToServer(new DeleteDisplayPayload(entry.entityId()));
+                send(new DeleteDisplayPayload(entry.entityId()));
                 if (entry.entityId() == selectedId) select(null);
             }
         }
     }
 
     public static void openInspector() {
+        if (!serverSupported()) return;
         Minecraft mc = Minecraft.getInstance();
         Display target = selected();
         if (target == null) {
@@ -280,7 +292,11 @@ public final class DisplayTool {
     // ---- helpers -------------------------------------------------------------------------------
 
     private static void sendUpdate(int entityId, Vec3 pos, float yRot, float xRot, CompoundTag data) {
-        PacketDistributor.sendToServer(new UpdateDisplayPayload(entityId, pos, yRot, xRot, data));
+        send(new UpdateDisplayPayload(entityId, pos, yRot, xRot, data));
+    }
+
+    private static void send(CustomPacketPayload payload) {
+        if (serverSupported()) PacketDistributor.sendToServer(payload);
     }
 
     private static void pushUndo(UndoEntry entry) {

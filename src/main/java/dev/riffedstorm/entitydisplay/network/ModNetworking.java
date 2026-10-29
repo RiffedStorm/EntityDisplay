@@ -8,7 +8,8 @@ public final class ModNetworking {
     private ModNetworking() {}
 
     public static void register(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("1");
+        // Optional: players without the mod can still join and see displays; only builders need it.
+        PayloadRegistrar registrar = event.registrar("1").optional();
         registrar.playToServer(SpawnDisplayPayload.TYPE, SpawnDisplayPayload.STREAM_CODEC, DisplayEditService::handleSpawn);
         registrar.playToServer(UpdateDisplayPayload.TYPE, UpdateDisplayPayload.STREAM_CODEC, DisplayEditService::handleUpdate);
         registrar.playToServer(DeleteDisplayPayload.TYPE, DeleteDisplayPayload.STREAM_CODEC, DisplayEditService::handleDelete);

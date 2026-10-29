@@ -37,7 +37,9 @@ public final class DisplayEditService {
         display.moveTo(payload.pos().x, payload.pos().y, payload.pos().z, payload.yRot(), payload.xRot());
         applyData(display, payload.data());
         level.addFreshEntity(display);
-        PacketDistributor.sendToPlayer(player, new SelectDisplayPayload(display.getId()));
+        if (player.connection.hasChannel(SelectDisplayPayload.TYPE)) {
+            PacketDistributor.sendToPlayer(player, new SelectDisplayPayload(display.getId()));
+        }
     }
 
     public static void handleUpdate(UpdateDisplayPayload payload, IPayloadContext context) {

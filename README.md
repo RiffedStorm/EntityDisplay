@@ -2,11 +2,15 @@
 
 Spawn and edit block, item and text displays with your mouse. No commands needed.
 
-**Minecraft 1.21.1 · NeoForge 21.1.200+** · install on both the client and the server.
+**Minecraft 1.21.1 · NeoForge 21.1.200+**
 
 ## Install
 
 Download the jar from [Releases](../../releases) and put it in your `mods` folder.
+
+- **Server:** needs the mod.
+- **Builders:** need the mod.
+- **Everyone else:** doesn't. Displays are vanilla entities, so all players see them.
 
 ## Controls
 
