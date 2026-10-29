@@ -1,0 +1,16 @@
+{
+  "key.categories.entitydisplay": "Entity Display",
+  "key.entitydisplay.toggle_tool": "Toggle Display Tool",
+  "key.entitydisplay.palette": "Open Spawn Palette",
+  "key.entitydisplay.inspector": "Open Inspector",
+  "key.entitydisplay.cycle_mode": "Cycle Gizmo Mode",
+  "key.entitydisplay.delete": "Delete Selected Display",
+  "key.entitydisplay.duplicate": "Duplicate Selected Display",
+  "key.entitydisplay.undo": "Undo",
+  "key.entitydisplay.free": "Hold: Disable Snapping",
+  "entitydisplay.denied": "You don't have permission to edit display entities here.",
+  "entitydisplay.tool.on": "Display Tool enabled",
+  "entitydisplay.tool.off": "Display Tool disabled",
+  "entitydisplay.undo.empty": "Nothing to undo",
+  "entitydisplay.inspector.none": "Look at a display (or select one) first"
+}

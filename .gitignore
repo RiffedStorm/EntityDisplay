@@ -1,0 +1,24 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Dev-run game folders (worlds, logs, configs created by runClient/runServer)
+run/
+runs/
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.vscode/
+bin/
+.classpath
+.project
+.settings/
+
+# OS junk
+.DS_Store
+Thumbs.db
