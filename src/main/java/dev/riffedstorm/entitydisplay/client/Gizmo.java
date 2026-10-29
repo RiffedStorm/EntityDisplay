@@ -162,11 +162,12 @@ public final class Gizmo {
             return new Drag(handle, entityId, pos, yRot, xRot, data, axis, size, t, null);
         }
 
-        public void update(Vec3 origin, Vec3 dir, boolean snap) {
+        /** {@code proportional}: a single scale handle scales all three axes by the same ratio. */
+        public void update(Vec3 origin, Vec3 dir, boolean snap, boolean proportional) {
             switch (handle.mode()) {
                 case MOVE -> updateMove(origin, dir, snap);
                 case ROTATE -> updateRotate(origin, dir, snap);
-                case SCALE -> updateScale(origin, dir, snap);
+                case SCALE -> updateScale(origin, dir, snap, proportional);
             }
         }
 
@@ -204,7 +205,7 @@ public final class Gizmo {
                     new Quaternionf(startT.getRightRotation())));
         }
 
-        private void updateScale(Vec3 origin, Vec3 dir, boolean snap) {
+        private void updateScale(Vec3 origin, Vec3 dir, boolean snap, boolean proportional) {
             double t = lineParam(origin, dir, startPos, axis);
             if (Double.isNaN(t)) return;
             Vector3f s0 = new Vector3f(startT.getScale());
@@ -220,7 +221,9 @@ public final class Gizmo {
                 if (Math.abs(start) < 1e-6) return;
                 double scaled = Math.max(1 / 64.0, start * (t / startParam));
                 if (snap) scaled = Math.max(1 / 64.0, snap(scaled, 1 / 16.0));
-                k.setComponent(i, (float) (scaled / start));
+                float ratio = (float) (scaled / start);
+                if (proportional) k.set(ratio);
+                else k.setComponent(i, ratio);
             }
             // Scale around the entity origin inside the left-rotation frame, so the pivot stays put.
             Quaternionf left = new Quaternionf(startT.getLeftRotation());

@@ -171,9 +171,9 @@ public final class DisplayTool {
         }
     }
 
-    public static void frame(Vec3 origin, Vec3 dir, boolean snap) {
+    public static void frame(Vec3 origin, Vec3 dir, boolean snap, boolean proportional) {
         if (drag != null) {
-            drag.update(origin, dir, snap);
+            drag.update(origin, dir, snap, proportional);
             return;
         }
         View view = view();

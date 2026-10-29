@@ -13,5 +13,6 @@
   "entitydisplay.tool.off": "Display Tool disabled",
   "entitydisplay.undo.empty": "Nothing to undo",
   "entitydisplay.inspector.none": "Look at a display (or select one) first",
-  "entitydisplay.unsupported": "This server doesn't have Entity Display installed"
+  "entitydisplay.unsupported": "This server doesn't have Entity Display installed",
+  "key.entitydisplay.proportional": "Hold: Scale Proportionally"
 }

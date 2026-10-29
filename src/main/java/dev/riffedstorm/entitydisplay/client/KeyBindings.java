@@ -3,6 +3,7 @@ package dev.riffedstorm.entitydisplay.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.riffedstorm.entitydisplay.EntityDisplayMod;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -22,6 +23,7 @@ public final class KeyBindings {
     public static final KeyMapping DELETE = key("delete", GLFW.GLFW_KEY_DELETE);
     public static final KeyMapping DUPLICATE = key("duplicate", GLFW.GLFW_KEY_N);
     public static final KeyMapping FREE = key("free", GLFW.GLFW_KEY_LEFT_ALT);
+    public static final KeyMapping PROPORTIONAL = key("proportional", GLFW.GLFW_KEY_LEFT_SHIFT);
     public static final KeyMapping UNDO = new KeyMapping("key.entitydisplay.undo", KeyConflictContext.IN_GAME,
             KeyModifier.CONTROL, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Z, CATEGORY);
 
@@ -31,9 +33,19 @@ public final class KeyBindings {
         return new KeyMapping("key.entitydisplay." + name, KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, key, CATEGORY);
     }
 
+    /**
+     * Reads the physical key state, so a hold-key still works when it shares a key with
+     * another binding (Shift is also sneak by default).
+     */
+    public static boolean isHeld(KeyMapping key) {
+        InputConstants.Key k = key.getKey();
+        if (k.getType() != InputConstants.Type.KEYSYM || k.getValue() == InputConstants.UNKNOWN.getValue()) return false;
+        return InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), k.getValue());
+    }
+
     @SubscribeEvent
     static void register(RegisterKeyMappingsEvent event) {
-        for (KeyMapping k : new KeyMapping[]{TOGGLE_TOOL, PALETTE, INSPECTOR, CYCLE_MODE, DELETE, DUPLICATE, FREE, UNDO}) {
+        for (KeyMapping k : new KeyMapping[]{TOGGLE_TOOL, PALETTE, INSPECTOR, CYCLE_MODE, DELETE, DUPLICATE, FREE, PROPORTIONAL, UNDO}) {
             event.register(k);
         }
     }

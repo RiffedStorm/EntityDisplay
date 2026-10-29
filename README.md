@@ -22,6 +22,7 @@ Download the jar from [Releases](../../releases) and put it in your `mods` folde
 | `R` | Switch gizmo: move / rotate / scale |
 | Left click | Select a display, or drag a gizmo handle |
 | Hold `Left Alt` | Drag without snapping |
+| Hold `Shift` | Scale all sides together (when dragging a scale handle) |
 | `N` | Duplicate selected |
 | `Delete` | Delete selected |
 | `Ctrl + Z` | Undo |

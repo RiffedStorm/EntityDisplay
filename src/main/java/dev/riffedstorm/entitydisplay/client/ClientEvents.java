@@ -75,7 +75,8 @@ public final class ClientEvents {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL || !DisplayTool.isActive()) return;
         Camera camera = event.getCamera();
         Vec3 origin = camera.getPosition();
-        DisplayTool.frame(origin, new Vec3(camera.getLookVector()), !KeyBindings.FREE.isDown());
+        DisplayTool.frame(origin, new Vec3(camera.getLookVector()), !KeyBindings.FREE.isDown(),
+                KeyBindings.isHeld(KeyBindings.PROPORTIONAL));
         GizmoRenderer.render(event.getModelViewMatrix(), origin, DisplayTool.view(), DisplayTool.hoveredCorners());
     }
 
