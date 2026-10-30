@@ -27,6 +27,8 @@ Download the jar from [Releases](../../releases) and put it in your `mods` folde
 | `Delete` | Delete selected |
 | `Ctrl + Z` | Undo |
 
+In the inspector, hover a number and scroll to adjust it (hold `Shift` for fine steps, `Ctrl` for big ones).
+
 All keys can be changed in Options → Controls → Entity Display.
 
 ## Permissions

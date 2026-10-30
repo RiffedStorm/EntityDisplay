@@ -4,6 +4,7 @@ import dev.riffedstorm.entitydisplay.client.screen.InspectorScreen;
 import dev.riffedstorm.entitydisplay.network.DeleteDisplayPayload;
 import dev.riffedstorm.entitydisplay.network.SpawnDisplayPayload;
 import dev.riffedstorm.entitydisplay.network.UpdateDisplayPayload;
+import net.minecraft.Util;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -40,6 +41,7 @@ public final class DisplayTool {
 
     public static final double REACH = 64;
     private static final int UNDO_LIMIT = 64;
+    private static final long COALESCE_MS = 1500;
 
     private static boolean active;
     private static Gizmo.Mode mode = Gizmo.Mode.MOVE;
@@ -52,6 +54,8 @@ public final class DisplayTool {
     private static Gizmo.Drag drag;
     private static int sendCooldown;
     private static int skipSpawnUndo;
+    private static int lastCoalescedId = -1;
+    private static long lastCoalescedAt;
     private static final Deque<UndoEntry> UNDO = new ArrayDeque<>();
 
     private DisplayTool() {}
@@ -216,8 +220,22 @@ public final class DisplayTool {
 
     /** Applies an edit from the inspector (undoable). */
     public static void edit(Display display, Vec3 pos, float yRot, float xRot, CompoundTag data) {
-        pushUndo(new UndoEntry(UndoKind.EDIT, display.getId(), null, display.position(), display.getYRot(),
-                display.getXRot(), DisplayData.readForRestore(display)));
+        edit(display, pos, yRot, xRot, data, false);
+    }
+
+    /**
+     * {@code coalesce}: rapid repeated edits of the same display (scroll-wheel nudges) share one
+     * undo step, as long as each comes within {@link #COALESCE_MS} of the previous one.
+     */
+    public static void edit(Display display, Vec3 pos, float yRot, float xRot, CompoundTag data, boolean coalesce) {
+        long now = Util.getMillis();
+        boolean merge = coalesce && display.getId() == lastCoalescedId && now - lastCoalescedAt < COALESCE_MS;
+        lastCoalescedId = coalesce ? display.getId() : -1;
+        lastCoalescedAt = now;
+        if (!merge) {
+            pushUndo(new UndoEntry(UndoKind.EDIT, display.getId(), null, display.position(), display.getYRot(),
+                    display.getXRot(), DisplayData.readForRestore(display)));
+        }
         DisplayData.preview(display, data, pos.x, pos.y, pos.z, yRot, xRot);
         sendUpdate(display.getId(), pos, yRot, xRot, data);
         if (display.getId() == selectedId) selectedData = data.copy();

@@ -63,11 +63,29 @@ public class InspectorScreen extends Screen {
             "thirdperson_lefthand", "thirdperson_righthand", "firstperson_lefthand", "firstperson_righthand");
     private static final List<String> ALIGNMENTS = List.of("center", "left", "right");
 
+    /** Scroll-wheel step per field: {normal, with Shift (fine), with Ctrl (coarse), min, max}. */
+    private static final Map<String, double[]> SCROLL = new HashMap<>();
+
+    static {
+        double inf = Double.MAX_VALUE;
+        for (String k : List.of("px", "py", "pz", "tx", "ty", "tz")) SCROLL.put(k, new double[]{1 / 16.0, 1 / 64.0, 1, -inf, inf});
+        for (String k : List.of("sx", "sy", "sz")) SCROLL.put(k, new double[]{1 / 16.0, 1 / 64.0, 1, 1 / 64.0, inf});
+        for (String k : List.of("yaw", "pitch", "rx", "ry", "rz")) SCROLL.put(k, new double[]{15, 1, 45, -inf, inf});
+        for (String k : List.of("block_light", "sky_light")) SCROLL.put(k, new double[]{1, 1, 5, 0, 15});
+        for (String k : List.of("view_range", "shadow_radius", "shadow_strength")) SCROLL.put(k, new double[]{0.1, 0.01, 1, 0, inf});
+        for (String k : List.of("width", "height")) SCROLL.put(k, new double[]{0.25, 1 / 16.0, 1, 0, inf});
+        SCROLL.put("interp", new double[]{1, 1, 10, 0, inf});
+        SCROLL.put("teleport", new double[]{1, 1, 10, 0, 59});
+        SCROLL.put("line_width", new double[]{10, 1, 50, 1, inf});
+        SCROLL.put("opacity", new double[]{5, 1, 25, 0, 255});
+    }
+
     private static Tab tab = Tab.TRANSFORM;
 
     private final Display display;
     private final Map<String, String> values = new HashMap<>();
     private final List<Label> labels = new ArrayList<>();
+    private final Map<EditBox, String> boxKeys = new HashMap<>();
     private CompoundTag original;
     private Quaternionf rightRotation;
     private String billboard, itemDisplay, alignment;
@@ -234,10 +252,14 @@ public class InspectorScreen extends Screen {
     }
 
     private void apply() {
+        apply(false);
+    }
+
+    private void apply(boolean fromScroll) {
         try {
             CompoundTag data = buildData();
             Vec3 pos = new Vec3(f("px", "Position X"), f("py", "Position Y"), f("pz", "Position Z"));
-            DisplayTool.edit(display, pos, f("yaw", "Yaw"), f("pitch", "Pitch"), data);
+            DisplayTool.edit(display, pos, f("yaw", "Yaw"), f("pitch", "Pitch"), data, fromScroll);
             original = data.copy();
             original.remove(DisplayNbt.REMOVE);
             setStatus("Applied", 0x7CFC9A);
@@ -251,6 +273,7 @@ public class InspectorScreen extends Screen {
     @Override
     protected void init() {
         labels.clear();
+        boxKeys.clear();
         left = width - PANEL_W;
         x = left + 6;
         contentW = PANEL_W - 12;
@@ -370,6 +393,7 @@ public class InspectorScreen extends Screen {
         b.setMaxLength(256);
         b.setValue(values.getOrDefault(key, ""));
         b.setResponder(v -> values.put(key, v));
+        boxKeys.put(b, key);
         addRenderableWidget(b);
         return b;
     }
@@ -411,6 +435,29 @@ public class InspectorScreen extends Screen {
     @Override
     public void tick() {
         if (!display.isAlive()) onClose();
+    }
+
+    /** Hover a number field and scroll to nudge it; Shift = fine steps, Ctrl = big steps. Applies live. */
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        for (Map.Entry<EditBox, String> e : boxKeys.entrySet()) {
+            EditBox box = e.getKey();
+            double[] step = SCROLL.get(e.getValue());
+            if (step == null || scrollY == 0 || !box.isMouseOver(mouseX, mouseY)) continue;
+            double current;
+            try {
+                current = Double.parseDouble(box.getValue().trim());
+            } catch (NumberFormatException ex) {
+                return true;
+            }
+            double amount = hasShiftDown() ? step[1] : hasControlDown() ? step[2] : step[0];
+            double next = Math.clamp(current + Math.signum(scrollY) * amount, step[3], step[4]);
+            put(e.getValue(), next);
+            box.setValue(values.get(e.getValue()));
+            apply(true);
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
