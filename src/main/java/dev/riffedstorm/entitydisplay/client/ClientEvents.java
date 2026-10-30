@@ -77,7 +77,15 @@ public final class ClientEvents {
         Vec3 origin = camera.getPosition();
         DisplayTool.frame(origin, new Vec3(camera.getLookVector()), !KeyBindings.FREE.isDown(),
                 KeyBindings.isHeld(KeyBindings.PROPORTIONAL));
-        GizmoRenderer.render(event.getModelViewMatrix(), origin, DisplayTool.view(), DisplayTool.hoveredCorners());
+        GizmoRenderer.capture(event.getModelViewMatrix(), event.getProjectionMatrix(), origin);
+    }
+
+    /** First thing in the HUD pass, so the gizmo sits under the hotbar/chat but over the world. */
+    @SubscribeEvent
+    static void onRenderGuiPre(RenderGuiEvent.Pre event) {
+        if (!DisplayTool.isActive()) return;
+        event.getGuiGraphics().flush();
+        GizmoRenderer.renderCaptured(DisplayTool.view(), DisplayTool.hoveredCorners());
     }
 
     @SubscribeEvent

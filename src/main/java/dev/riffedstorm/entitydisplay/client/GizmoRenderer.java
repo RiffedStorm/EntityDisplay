@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexSorting;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
@@ -30,10 +31,32 @@ public final class GizmoRenderer {
         this.camera = camera;
     }
 
-    /** Everything here is drawn without depth testing, so the gizmo is never hidden behind blocks. */
-    public static void render(Matrix4f viewRotation, Vec3 camera, DisplayTool.View selected, Vec3[] hoveredCorners) {
+    private static Matrix4f capturedView, capturedProjection;
+    private static Vec3 capturedCamera;
+
+    /** Remembers this frame's camera; called from the world render pass. */
+    public static void capture(Matrix4f viewRotation, Matrix4f projection, Vec3 camera) {
+        capturedView = new Matrix4f(viewRotation);
+        capturedProjection = new Matrix4f(projection);
+        capturedCamera = camera;
+    }
+
+    /**
+     * Draws in the HUD pass, using the camera captured from this frame's world pass. Frame generation
+     * (DLSS/FSR/Lossless-style) reprojects the world image but leaves the HUD alone, so an overlay drawn
+     * into the world without depth flickers on generated frames; drawn here it stays stable.
+     * Everything is drawn without depth testing, so the gizmo is never hidden behind blocks.
+     */
+    public static void renderCaptured(DisplayTool.View selected, Vec3[] hoveredCorners) {
+        if (capturedProjection == null) return;
+        Matrix4f viewRotation = capturedView, projection = capturedProjection;
+        Vec3 camera = capturedCamera;
+        capturedProjection = null; // only draw for frames where the world was actually rendered
         if (selected == null && hoveredCorners == null) return;
 
+        Matrix4f guiProjection = new Matrix4f(RenderSystem.getProjectionMatrix());
+        VertexSorting guiSorting = RenderSystem.getVertexSorting();
+        RenderSystem.setProjectionMatrix(projection, VertexSorting.DISTANCE_TO_ORIGIN);
         Matrix4fStack modelView = RenderSystem.getModelViewStack();
         modelView.pushMatrix();
         modelView.identity();
@@ -60,6 +83,7 @@ public final class GizmoRenderer {
         RenderSystem.enableDepthTest();
         modelView.popMatrix();
         RenderSystem.applyModelViewMatrix();
+        RenderSystem.setProjectionMatrix(guiProjection, guiSorting);
     }
 
     private void gizmo(DisplayTool.View view) {
